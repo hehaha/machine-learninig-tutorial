@@ -10,6 +10,19 @@ DIR_PATH = PATH + "/mnist_png"
 DATA_SET = ["training"]
 
 
+def process_image(img_name, origin_dir, target_dir, img_type="png"):
+    with tf.Session() as _:
+        raw_data = tf.gfile.FastGFile(origin_dir + "/" + img_name, "r").read()
+        if img_type == "png":
+            img_data = tf.image.decode_png(raw_data)
+        else:
+            img_data = tf.image.decode_jpep(img_name)
+        resized = tf.image.resize_images(img_data, [300, 300], method=1)
+        encode_img = tf.image.encode_png(resized)
+        with tf.gfile.GFile(target_dir + "/" + img_name, "wb") as f:
+            f.write(encode_img.eval())
+
+
 def main(file_path):
     try:
         os.mkdir(DIR_PATH)
@@ -31,15 +44,8 @@ def main(file_path):
             index = 0
             img_file_list = file_list[:500]
             while img_file_list:
-                with tf.Session() as sess:
-                    for img_name in img_file_list:
-                        print dir_name, img_name
-                        raw_data = tf.gfile.FastGFile(origin_num_dir + "/" + img_name, "r").read()
-                        img_data = tf.image.decode_png(raw_data)
-                        resized = tf.image.resize_images(img_data, [300, 300], method=1)
-                        encode_img = tf.image.encode_png(resized)
-                        with tf.gfile.GFile(target_num_dir + "/" + img_name, "wb") as f:
-                            f.write(encode_img.eval())
+                for img_name in img_file_list:
+                    process_image(img_name, origin_num_dir, target_num_dir)
                 index += 500
                 img_file_list = file_list[index: index + 500]
                 sys.stdout.flush()
